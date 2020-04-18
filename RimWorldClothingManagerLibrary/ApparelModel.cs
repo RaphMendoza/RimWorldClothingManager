@@ -17,7 +17,7 @@ namespace RimWorldClothingManagerLibrary
         [XmlAttribute("Abstract")] public string Abstract { get; set; }
         [XmlElement("label")] public string Label { get; set; }
         [XmlElement("description")] public string Description { get; set; }
-        [XmlElement("thingCategories")] public List<ThingCategories> ThingCategories { get; set; } = new List<ThingCategories>();
+        [XmlElement("thingCategories")] public ThingCategories ThingCategories { get; set; }
         [XmlElement("apparel")] public Apparel Apparel { get; set; }
         [XmlElement("statBases")] public StatBases StatBases { get; set; }
         [XmlElement("equippedStatOffsets")] public EquippedStatOffsets EquippedStatOffsets { get; set; }
@@ -31,18 +31,18 @@ namespace RimWorldClothingManagerLibrary
 
     public class Apparel
     {
-        [XmlElement("bodyPartGroups")] public List<BodyPartGroups> BodyPartGroups { get; set; } = new List<BodyPartGroups>();
-        [XmlElement("layers")] public List<Layers> Layers { get; set; } = new List<Layers>();
+        [XmlElement("bodyPartGroups")] public BodyPartGroups BodyPartGroups { get; set; }
+        [XmlElement("layers")] public Layers Layers { get; set; }
     }
 
     public class BodyPartGroups
     {
-        [XmlElement("li")] public string Li { get; set; }
+        [XmlElement("li")] public List<string> Li { get; set; } = new List<string>();
     }
 
     public class Layers
     {
-        [XmlElement("li")] public string Li { get; set; }
+        [XmlElement("li")] public List<string> Li { get; set; } = new List<string>();
     }
 
     [XmlRoot("statBases")]

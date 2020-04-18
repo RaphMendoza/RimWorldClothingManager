@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:conv="clr-namespace:RimWorldClothingManagerUi.Converters"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:vm="clr-namespace:RimWorldClothingManagerUi.ViewModels"
@@ -12,6 +13,12 @@
     Width="1280"
     Height="768"
     FontSize="20" mc:Ignorable="d">
+
+    <Window.Resources>
+        <conv:LayerCollectionToStringConverter x:Key="LayerCollectionToStringConverter"></conv:LayerCollectionToStringConverter>
+        <conv:BodyPartGroupCollectionToStringConverter x:Key="BodyPartGroupCollectionToStringConverter"></conv:BodyPartGroupCollectionToStringConverter>
+    </Window.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -53,8 +60,9 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical">
-                        <TextBlock Text="{Binding Label}"/>
-                        <TextBlock Text="{Binding Description}"/>
+                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold" FontSize="16"/>
+                        <TextBlock Text="{Binding Apparel.Layers, Converter={StaticResource LayerCollectionToStringConverter}}" FontSize="14"/>
+                        <TextBlock Text="{Binding Apparel.BodyPartGroups, Converter={StaticResource BodyPartGroupCollectionToStringConverter}}" FontSize="14"/>
                     </StackPanel>
                 </DataTemplate>
             </ListView.ItemTemplate>

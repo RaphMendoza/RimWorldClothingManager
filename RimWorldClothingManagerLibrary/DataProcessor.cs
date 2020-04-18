@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 
 namespace RimWorldClothingManagerLibrary
@@ -80,100 +80,103 @@ namespace RimWorldClothingManagerLibrary
 
         private List<ApparelModel> NormalizeData(List<ApparelModel> apparels)
         {
-            var actualApparels = apparels.Where(x => x.Abstract == null).ToList();
+            var actualApparels = apparels.Where(x => x.Abstract == null);
 
             var normalizedApparel = new List<ApparelModel>();
 
             foreach (var actualApparel in actualApparels)
             {
-                normalizedApparel.Add(MergeModel(actualApparel, apparels));
+                normalizedApparel.Add(UpdateApparelData(actualApparel, apparels));
             }
 
             return normalizedApparel;
         }
 
-        private ApparelModel MergeModel(ApparelModel actualApparel, List<ApparelModel> sourceApparels)
+        private ApparelModel UpdateApparelData(ApparelModel actualApparel, List<ApparelModel> sourceApparels)
         {
-            var sourceApparel = sourceApparels.FirstOrDefault(x => x.Name == actualApparel.ParentName);
+            var parentApparels = sourceApparels.Where(x => x.Name == actualApparel.ParentName).ToList();
 
-            if (sourceApparel.ParentName != null)
+            if (parentApparels == null || parentApparels.Count() > 1)
             {
-                sourceApparel = MergeModel(sourceApparel, sourceApparels);
+                throw new Exception();
+            }
+
+            var parentApparel = parentApparels.First();
+            switch (string.IsNullOrWhiteSpace(parentApparel.ParentName))
+            {
+                case false:
+                    parentApparel = UpdateApparelData(parentApparel, sourceApparels);
+                    break;
             }
 
             //Apparel
-            if (sourceApparel.Apparel != null)
+            if (actualApparel.Apparel != null)
             {
-                if (actualApparel.Apparel != null)
+                if (actualApparel.Apparel.BodyPartGroups == null && parentApparel.Apparel?.BodyPartGroups != null)
                 {
-                    if (actualApparel.Apparel.BodyPartGroups != null && sourceApparel.Apparel.BodyPartGroups != null)
-                    {
-                        actualApparel.Apparel.BodyPartGroups =
-                            actualApparel.Apparel.BodyPartGroups.Union(sourceApparel.Apparel.BodyPartGroups).ToList();
-                    }
-                    else
-                    {
-                        actualApparel.Apparel.BodyPartGroups = sourceApparel.Apparel.BodyPartGroups;
-                    }
-
-                    if (actualApparel.Apparel.Layers != null)
-                    {
-                        actualApparel.Apparel.Layers =
-                            actualApparel.Apparel.Layers.Union(sourceApparel.Apparel.Layers).ToList();
-                    }
-                    else
-                    {
-                        actualApparel.Apparel.Layers = sourceApparel.Apparel.Layers;
-                    }
+                    actualApparel.Apparel.BodyPartGroups = parentApparel.Apparel.BodyPartGroups;
                 }
-                else
+
+                if (actualApparel.Apparel.Layers == null && parentApparel.Apparel?.Layers != null)
                 {
-                    actualApparel.Apparel = sourceApparel.Apparel;
-                } 
+                    actualApparel.Apparel.Layers = parentApparel.Apparel.Layers;
+                }
+            }
+            else
+            {
+                actualApparel.Apparel = parentApparel.Apparel;
             }
 
             //ThingCategories
-            if (sourceApparel.ThingCategories != null)
+            if (actualApparel.ThingCategories == null && parentApparel.ThingCategories != null)
             {
-                actualApparel.ThingCategories = actualApparel.ThingCategories.Union(sourceApparel.ThingCategories).ToList();
+                actualApparel.ThingCategories = parentApparel.ThingCategories;
             }
 
             //StatBases
-            if (sourceApparel.StatBases != null)
+            switch (actualApparel.StatBases == null)
             {
-                if (actualApparel.StatBases != null)
-                {
-                    foreach (var property in typeof(StatBases).GetProperties())
+                case true:
+                    actualApparel.StatBases = parentApparel.StatBases;
+                    break;
+                case false:
+                    if (parentApparel.StatBases != null)
                     {
-                        if ((double)property.GetValue(actualApparel.StatBases) == 0)
+                        foreach (var propertyInfo in typeof(StatBases).GetProperties())
                         {
-                            property.SetValue(actualApparel.StatBases, property.GetValue(sourceApparel.StatBases));
+                            var actualApparelPropertyValue = propertyInfo.GetValue(actualApparel.StatBases);
+                            var parentApparelPropertyValue = propertyInfo.GetValue(parentApparel.StatBases);
+
+                            if ((double)actualApparelPropertyValue == 0 && actualApparelPropertyValue != parentApparelPropertyValue)
+                            {
+                                propertyInfo.SetValue(actualApparel.StatBases, parentApparelPropertyValue);
+                            }
                         }
                     }
-                }
-                else
-                {
-                    actualApparel.StatBases = sourceApparel.StatBases;
-                } 
+                    break;
             }
 
             //EquippedStatOffsets
-            if (sourceApparel.EquippedStatOffsets != null)
+            switch (actualApparel.EquippedStatOffsets == null)
             {
-                if (actualApparel.EquippedStatOffsets != null)
-                {
-                    foreach (var property in typeof(EquippedStatOffsets).GetProperties())
+                case true:
+                    actualApparel.EquippedStatOffsets = parentApparel.EquippedStatOffsets;
+                    break;
+                case false:
+                    if (parentApparel.EquippedStatOffsets != null)
                     {
-                        if ((double)property.GetValue(actualApparel.EquippedStatOffsets) == 0)
+                        foreach (var propertyInfo in typeof(EquippedStatOffsets).GetProperties())
                         {
-                            property.SetValue(actualApparel.EquippedStatOffsets, property.GetValue(sourceApparel.EquippedStatOffsets));
+                            var actualApparelPropertyValue = propertyInfo.GetValue(actualApparel.EquippedStatOffsets);
+                            var parentApparelPropertyValue = propertyInfo.GetValue(parentApparel.EquippedStatOffsets);
+
+                            if ((double)actualApparelPropertyValue == 0 && actualApparelPropertyValue != parentApparelPropertyValue)
+                            {
+                                propertyInfo.SetValue(actualApparel.EquippedStatOffsets, parentApparelPropertyValue);
+                            }
                         }
                     }
-                }
-                else
-                {
-                    actualApparel.EquippedStatOffsets = sourceApparel.EquippedStatOffsets;
-                } 
+                    break;
             }
 
             return actualApparel;

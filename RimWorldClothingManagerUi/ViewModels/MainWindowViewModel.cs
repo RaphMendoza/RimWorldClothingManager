@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 using Prism.Commands;
@@ -23,7 +24,7 @@ namespace RimWorldClothingManagerUi.ViewModels
         private void GenerateData()
         {
             var dataProcessor = new DataProcessor(DefaultFilePath);
-            var output = dataProcessor.LoadData();
+            var output = dataProcessor.LoadData().OrderBy(x => x.Label);
 
             ApparelData = new ObservableCollection<ApparelModel>(output);
         }
